@@ -1,0 +1,140 @@
+@login_required
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, shrink-to-fit=no'>
+        <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css' >
+        <title>ルート提案アプリ</title>
+        <style>
+            #directions-panel {
+                margin-top: 20px;
+            }
+        </style>
+        <script src="{% static 'js/pulldown.js' %}"></script>
+        {% with template="https://maps.googleapis.com/maps/api/js?key="|add:my_api_key|add:"&callback=switchMap&libraries=places" %}
+		<script src={{ template }} async defer></script>
+		{% endwith %}
+    </head>
+    
+    <body>
+        <nav class='navbar navbar-expand-sm navbar-dark bg-dark fixed-top'>
+            <a class='navbar-brand' href='{% url "sanpomap" %}'>ルート提案アプリ</a>
+            <a href="{% url 'Logout' %}">ログアウト</a>
+        </nav>
+        
+        <div class='container'>
+            <h1 style = "padding-top:70px"><font color="red">{{ UserID }}</font>さんのルート提案</h1>
+            <div class="col-auto my-1">
+                <label for="list">下部のメニューから選択してください</label>
+            </div>
+            
+            <div class="col-auto my-1">
+                <select class="form-control" id="list" onchange="viewChange();">
+                    <option value="item1">ルートを選択してください</option>
+                    <option value="item2">経由地を指定するルート(5つまで)</option>
+                    <option value="item3">近くのコンビニを通るルート(3つ)</option>
+                    <option value="item4">自動で施設を取得するルート(3つ)</option>
+                    <option value="item5">ランダム座標のルート(3つ)</option>
+                    <option value="item6">散歩ログからのルート</option>
+                    <option value="item7">現在地から目的地のルート</option>
+                    <option value="item8">除雪済みルート</option>
+                </select>
+            </div>
+            
+            <div id="map-container" style="height:400px;width:1200px"></div>
+            
+            <script>
+              var selectedMap = 'item1'; // 初期選択地図
+        
+              function loadExternalMapScript(mapScriptUrl) {
+                var script = document.createElement('script');
+                script.src = mapScriptUrl;
+                document.head.appendChild(script);
+              }
+        
+              function switchMap(selected) {
+                if (selected === 'item1') {
+                  loadExternalMapScript("{% static 'js/now.js' %}");
+                } else if (selected === 'item2') {
+                  loadExternalMapScript("{% static 'js/route.js' %}");
+                } else if (selected === 'item3') {
+                  loadExternalMapScript("{% static 'js/convenience.js' %}");
+                } else if (selected === 'item4') {
+                  loadExternalMapScript("{% static 'js/auto.js' %}");
+                } else if (selected === 'item5') {
+                  loadExternalMapScript("{% static 'js/kyori.js' %}");
+                } else if (selected === 'item6') {
+                  loadExternalMapScript("{% static 'js/route.js' %}");
+                } else if (selected === 'item7') {
+                  loadExternalMapScript("{% static 'js/mokutekiti.js' %}");
+                } else if (selected === 'item8') {
+                  loadExternalMapScript("{% static 'js/route.js' %}");
+                }
+              }
+        
+              document.getElementById('list').addEventListener('change', function () {
+                selectedMap = this.value;
+                switchMap(selectedMap);
+              });
+        
+              // ページ読み込み時に初期地図を表示
+              //switchMap(selectedMap);
+            </script>
+            
+            <div class="col-auto my-5">
+                <div id="Box1" class="my-5">
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box2" class="my-5" style="display:none;">
+                    {% block content %}
+                    {% endblock %}
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box3" class="my-5" style="display:none;">  
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box4" class="my-5" style="display:none;">
+                    <button id="add-waypoints-button">経由地を自動追加</button>
+                    <br>
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box5" class="my-5" style="display:none;">
+                    <button id="add-waypoint-button">ランダムな経由地を追加</button>
+                    <button id="navigate-button">道案内を開始</button>
+                    <div id="directions-panel"></div>
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box6" class="my-5" style="display:none;">  
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box7" class="my-5" style="display:none;"> 
+                    <label for="destination-input">目的地:</label>
+                    <input type="text" id="destination-input" placeholder="目的地を入力">
+                    <button id="calculate-route-button">ルート計算</button>
+                    <br>
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+                
+                <div id="Box8" class="my-5" style="display:none;">  
+                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                </div>
+            </div>
+            
+            
+        </div>
+    </body>
+    
+    <footer>
+        <div class="p-3 mb-2 bg-light text-dark">
+            <p>&copy; 角田研究室 松尾圭翔 卒業研究</p>
+        </div>
+    </footer>
+</html>

@@ -1,0 +1,12 @@
+{% extends './sanpomap.html' %}
+{% block content %}
+    
+    
+        <input type="text" id="waypointInput" placeholder="経由地を入力">
+        <button onclick="addWaypoint()">経由地を追加</button>
+        <button onclick="resetWaypoints()">経由地をリセット</button>
+        <!-- 経由地リスト -->
+        <ul id="waypointsList"></ul>
+    
+        
+{% endblock %}
