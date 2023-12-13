@@ -4,12 +4,13 @@
 
 <head>
 <meta charset="utf-8">
-<title></title>
-<link rel="stylesheet" href='{% static "App_Folder_css/style.css" %}'/>
+<title>新規登録</title>
+<link rel="stylesheet" href='{% static "App_Folder_css/register.css" %}'/>
 </head>
 
 <body>
-<h1>新規登録</h1>
+ <div class="form-signin">
+<h1 class="font-weight-bold">新規登録</h1>
 
  {% if AccountCreate %}
    <h1>登録完了!</h1>
@@ -24,13 +25,13 @@
    {{ account_form.as_table }}
    {{ add_account_form.as_table }}
    <tr><td></td><td>
-   <input class="btn" type="submit" name="" value="登録">
+   <input class="btn btn-primary btn-lg" type="submit" name="" value="登録">
    </td></tr>
    </form>
 
    </table>
    </div>
  {% endif %}
-
+</div>
 </body>
 </html>

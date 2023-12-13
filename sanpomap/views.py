@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 
 from django.views.generic import TemplateView # テンプレートタグ
@@ -8,9 +8,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect,HttpResponse, JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from django.template import loader
 
+from .models import Account, WalkHistory
 
 # Create your views here.
 def Login(request):
@@ -111,8 +113,30 @@ class  AccountRegistration(TemplateView):
 
 def main(request):
     return render(request, './user_settings.html')
-    
+
+@login_required
+def save_total_distance(request, total_distance):
+    if request.method == 'POST':
+        total_distance = request.POST.get('total_distance')
+
+        # データベースに総距離を保存
+        WalkHistory.objects.create(user=request.user, total_distance=total_distance)
+
+        return JsonResponse({'message': 'Total distance saved successfully.'})
+    else:
+        return JsonResponse({'error': 'Invalid request method.'})
+
 @login_required
 def history(request):
     params = {"UserID":request.user,}
-    return render(request, 'App_Folder_HTML/history.html',context = params)
+    
+    user = request.user
+
+    # ユーザーごとにアカウントを取得
+    account = Account.objects.get(user=user)
+    
+    # 過去5回分の散歩履歴を取得
+    walk_history = WalkHistory.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    return render(request, 'App_Folder_HTML/history.html', {'walk_history': walk_history, **params})
+ 

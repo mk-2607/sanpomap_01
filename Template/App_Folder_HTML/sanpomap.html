@@ -4,14 +4,10 @@
 <html>
     <head>
         <meta charset='utf-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0, shrink-to-fit=no'>
-        <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css' >
+        <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,shrink-to-fit=no">
+        <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' >
         <title>ルート提案アプリ</title>
-        <style>
-            #directions-panel {
-                margin-top: 20px;
-            }
-        </style>
+        <link rel="stylesheet" href='{% static "App_Folder_css/sanpomap.css" %}'/>
         <script src="{% static 'js/pulldown.js' %}"></script>
         {% with template="https://maps.googleapis.com/maps/api/js?key="|add:my_api_key|add:"&callback=switchMap&libraries=places" %}
 		<script src={{ template }} async defer></script>
@@ -21,29 +17,29 @@
     <body>
         <nav class='navbar navbar-expand-sm navbar-dark bg-dark fixed-top'>
             <a class='navbar-brand' href='{% url "sanpomap" %}'>ルート提案アプリ</a>
-            <a href="{% url 'Logout' %}">ログアウト</a>
+            <a class='btn btn-danger text-end' href="{% url 'Logout' %}">ログアウト</a>
         </nav>
         
         <div class='container'>
             <h1 style = "padding-top:70px"><font color="red">{{ UserID }}</font>さんのルート提案</h1>
             <div class="col-auto my-1">
-                <label for="list">下部のメニューから選択してください</label>
+                <label class="text-center" for="list">下部のメニューから選択してください</label>
             </div>
             
             <div class="col-auto my-1">
-                <select class="form-control" id="list" onchange="viewChange();">
+                <select class="form-control form-control-lg" id="list" onchange="viewChange();">
                     <option value="item1">ルートを選択してください</option>
                     <option value="item2">経由地を指定するルート(5つまで)</option>
                     <option value="item3">近くのコンビニを通るルート(3つ)</option>
                     <option value="item4">自動で施設を取得するルート(3つ)</option>
                     <option value="item5">ランダム座標のルート(3つ)</option>
-                    <option value="item6">散歩ログからのルート</option>
+                    <option value="item6">時間ごとのルート(30分)</option>
                     <option value="item7">現在地から目的地のルート</option>
                     <option value="item8">除雪済みルート</option>
                 </select>
             </div>
             
-            <div id="map-container" style="height:400px;width:1200px"></div>
+            <div id="map-container" style="height:100%;width:100%"></div>
             
             <script>
               var selectedMap = 'item1'; // 初期選択地図
@@ -66,11 +62,11 @@
                 } else if (selected === 'item5') {
                   loadExternalMapScript("{% static 'js/kyori.js' %}");
                 } else if (selected === 'item6') {
-                  loadExternalMapScript("{% static 'js/route.js' %}");
+                  loadExternalMapScript("{% static 'js/time.js' %}");
                 } else if (selected === 'item7') {
                   loadExternalMapScript("{% static 'js/mokutekiti.js' %}");
                 } else if (selected === 'item8') {
-                  loadExternalMapScript("{% static 'js/route.js' %}");
+                  loadExternalMapScript("{% static 'js/now.js' %}");
                 }
               }
         
@@ -85,56 +81,84 @@
             
             <div class="col-auto my-5">
                 <div id="Box1" class="my-5">
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
                 <div id="Box2" class="my-5" style="display:none;">
-                    {% block content %}
-                    {% endblock %}
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        {% block content %}
+                        {% endblock %}
+                        <div class="text-center h5" id="total-kyori1"></div>
+                        <div class="text-center h5" id="annai-container1"></div>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
-                <div id="Box3" class="my-5" style="display:none;">  
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                <div id="Box3" class="my-5" style="display:none;">
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <div class="text-center h5" id="total-distance"></div>
+                        <div class="text-center h5" id="instruction-container"></div>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
                 <div id="Box4" class="my-5" style="display:none;">
-                    <button id="add-waypoints-button">経由地を自動追加</button>
-                    <br>
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class='btn btn-primary' id="addWaypointsButton">経由地を自動追加</button>
+                        <div id="button-container"></div>
+                        <div class="text-center h5" id="total-distance1"></div>
+                        <div class="text-center h5" id="instruction-container1"></div>
+                        <br>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
                 <div id="Box5" class="my-5" style="display:none;">
-                    <button id="add-waypoint-button">ランダムな経由地を追加</button>
-                    <button id="navigate-button">道案内を開始</button>
-                    <div id="directions-panel"></div>
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class='btn btn-primary' id="add-waypoint-button">ランダムな経由地を追加</button>
+                        <button class='btn btn-success' id="navigate-button">道案内を開始</button>
+                        <div class="text-center h5" id="your-total-distance-container-id"></div>
+                        <div class="text-center h5" id="your-instruction-container-id"></div>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
-                <div id="Box6" class="my-5" style="display:none;">  
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                <div id="Box6" class="my-5" style="display:none;">
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button class='btn btn-primary' id="add-waypoint-button1">近場の経由地を追加</button>
+                        <button class='btn btn-success' id="navigate-button1">道案内を開始</button>
+                        <div class="text-center h5" id="your-total-distance-container-id1"></div>
+                        <div class="text-center h5" id="your-instruction-container-id1"></div>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
-                <div id="Box7" class="my-5" style="display:none;"> 
-                    <label for="destination-input">目的地:</label>
-                    <input type="text" id="destination-input" placeholder="目的地を入力">
-                    <button id="calculate-route-button">ルート計算</button>
-                    <br>
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                <div id="Box7" class="my-5" style="display:none;">
+                    <div class="d-grid gap-2 col-6 mx-auto"> 
+                        <label for="destination-input">目的地:</label>
+                        <input type="text" id="destination-input" placeholder="目的地を入力">
+                        <button class='btn btn-success' id="calculate-route-button">ルート計算</button>
+                        <div class="text-center h5" id="total-kyori"></div>
+                        <div class="text-center h5" id="annai-container"></div>
+                        <br>
+                        <a href="{% url 'history' %}" class="btn btn-secondary">散歩履歴表示</a>
+                    </div>
                 </div>
                 
-                <div id="Box8" class="my-5" style="display:none;">  
-                    <a href="{% url 'history' %}"><button>散歩履歴表示</button></a>
+                <div id="Box8" class="my-5" style="display:none;">
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <p class="text-center fs-1 fw-bold"><font color="red">このマップは調整中です</font></p>
+                    </div>
                 </div>
             </div>
-            
-            
         </div>
+        
+        <footer>
+            <div class="p-3 mb-2 bg-light text-dark">
+                <p>&copy; 角田研究室 松尾圭翔 卒業研究</p>
+            </div>
+        </footer>
     </body>
-    
-    <footer>
-        <div class="p-3 mb-2 bg-light text-dark">
-            <p>&copy; 角田研究室 松尾圭翔 卒業研究</p>
-        </div>
-    </footer>
 </html>
